@@ -1,0 +1,17 @@
+.reveal pre code {
+    font-size: 20px;
+    line-height: 1.1;
+    
+}
+.reveal li {
+    font-size: 0.8em;
+}
+.reveal p {
+    font-size: 26px;
+}
+.reveal pre {
+    box-shadow: none;
+}
+.reveal section ol {
+    width: 100%;
+}

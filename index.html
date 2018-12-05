@@ -1,49 +1,253 @@
 <!doctype html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>presentation</title>
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+    <link rel="stylesheet" href="css/my.css">
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h2>Promises. Callbacks. Async/await.</h2>
+          <aside class="notes">I appreciate everybody for coming here to listen this small piece of very interesting and useful information, but maybe it’s not quite. If you have any questions, don't hesitate to google it. So, let's start.</aside>
+        </section>
+        <section>
+          <section>
+            <h3>What for?</h3>
+            <p class="fragment fade-in">Asynchronous nature</p>
+            <aside class="notes">Today, i’m going to talk about promises, callback, async/await structures. The first question we should ask ourselves is what for we need to use it. The answer hides in asynchronous nature of some functions. All we know that JavaScript is an event driven language. This means that instead of waiting for a response before moving on, JavaScript will keep executing while listening for other events. But very often we need the function to perform event before next one is executed.</aside>
+          </section>
+          <section>
+            <img src="./img/asyncproblem.jpg" alt="async meme">
+            <aside class="notes">In this case we can’t just call one function after another and be sure that they execute in the same order.</aside>
+          </section>
+          <section>
+            <pre>
+              <code data-noescape data-trim class="hljs javascript">
+                function printString(string) {
+                  setTimeout(() => {
+                    console.log(string);
+                  },
+                  Math.floor(Math.random() * 100) + 1);
+                }
 
-		<title>reveal.js</title>
+                function printAll() {
+                  printString('A');
+                  printString('B');
+                  printString('C');
+                }
+                printAll();                 
+              </code>
+            </pre>
+            <aside class="notes">Let’s take a look at a simple example. I will use it in next slides so try to keep it in memory. It’s a function that will print a string after a random amount of time. And the other one is that call ‘printString’ in direct order.</aside>
+          </section>
+          <section>
+            <img src="./img/asyncExample.PNG" alt="async Example">
+            <aside class="notes">If we try to call it several times, we’ll notice that it prints in different and random order each time we call it. This is because these functions are asynchronous. Each function gets executed in order, but each one is independent with it’s own setTimeout. They won’t wait for the last function to finish before they start. It’s ok, but what if our aim is to get the same order each time. To get this we can use callback functions.</aside>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h3>Callbacks</h3>
+            <p class="fragment fade-in">Callback function  is a function that is to be executed after another function has finished executing — hence the name ‘call back’.</p>
+            <aside class="notes">	So what are the callbacks? Callbacks are just the name of a convention for using JavaScript functions. There isn't a special thing called a 'callback' in the JavaScript language, it's just a convention. A callback function is a function passed into another function as an argument, which is then invoked inside the outer function to complete some kind of routine or action.</aside>
+          </section>
+          <section>
+            <pre>
+              <code data-noescape data-trim class="hljs javascript">
+                function printString(string, callback) {
+                  setTimeout(() => {
+                    console.log(string);
+                    callback();
+                  },
+                  Math.floor(Math.random() * 100) + 1);
+                }
+                
+                function printAll() {
+                  printString('A', () => {
+                    printString('B', () => {
+                      printString('C', () => {});
+                    });
+                  });
+                }
+                printAll();
+              </code>
+            </pre>
+            <aside class="notes">So let’s take a look at our function from previous example, but refactored to work with callbacks. We add a callback function as a second argument and call it inside main function. Now it looks like more uglier, but we’ve got what we wanted: the same result on every call.</aside>
+          </section>
+          <section>
+            <img src="./img/usecallbacks.PNG" alt="code with callbacks">
+            <aside class="notes">So let’s take a look at our function from previous example, but refactored to work with callbacks. We add a callback function as a second argument and call it inside main function. Now it looks like more uglier, but we’ve got what we wanted: the same result on every call.</aside>
+          </section>
+          <section>
+            <pre>
+              <code data-noescape data-trim class="hljs javascript">
+                function printAll() {
+                  printString('A', () => {
+                    printString('B', () => {
+                      printString('C', () => {
+                        printString('D', () => {
+                          printString('E', () => {
+                            printString('X', () => {
+                              printString('Y', () => {
+                                printString('Z', () => {});
+                              });
+                            });
+                          });
+                        });
+                      });
+                    });
+                  });
+                }
+                printAll();
+              </code>
+            </pre>
+            <aside class="notes">But imagine situation when our function is much more complicated and needs more nested callbacks. This pattern is called callback hell or pyramid of doom.</aside>
+          </section>
+          <section>
+            <h4>Callback hell</h4>
+            <ul>
+              <li class="fragment fade-in">Difficult to read</li>
+              <li class="fragment fade-in">Difficult to maintenance</li>
+            </ul>
+            <h4 class="fragment fade-in">How to avoid</h4>
+            <ul>
+              <li class="fragment fade-in">Don't nest functions</li>
+              <li class="fragment fade-in">Use function hoisting</li>
+              <li class="fragment fade-in">Handle every single error</li>
+              <li class="fragment fade-in">Modularize</li>
+            </ul>
+            <aside class="notes">And it’s easy understand why. It’s difficult to read, difficult to maintenance. So Captain Obvious gives us a cue not to nest functions a lot. Give names to anonymous functions and use function hoisting. Handle every single error in every one of your callbacks. Split code and make modules to reduce time for understanding code.</aside>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h3>Promises</h3>
+            <p class="fragment fade-in">A promise is an object that may produce a single value some time in the future: either a resolved value, or a reason that it’s not resolved </p>
+            <pre>
+              <code data-noescape data-trim class="hljs javascript fragment fade-in">
+                let promise = new Promise(function(resolve, reject) {
+                  // executor (the producing code);
+                });
+                promise.then(onFulfilled, onRejected);
+              </code>
+            </pre>
+            <aside class="notes">Promises is one of the way to solve callback hell pattern. A promise is an object that may produce either a resolved value, or a reason that it’s not resolved. Here you can see the syntax of promise. The function passed to ‘new Promise’ is called the executor. When the promise is created, this executor function runs automatically. It contains the producing code, that should eventually produce a result.</aside>
+          </section>
+          <section>
+            <img src="./img/promises_structure.png" alt="promises structure">
+            <aside class="notes">Let’s take a look how it works. Promise has internal properties: state (pending, fulfilled, rejected) and result (undefined, value, error). When executor finishes the job, it call one of its callbacks (resolve or reject) that change state and result to fulfilled and value or to rejected and error accordingly. Consuming functions are subscribed to promise by methods ‘then’ or ‘catch’. they can do any magic or return promise as well. It’s called promises chaining.</aside>
+          </section>
+          <section>
+            <pre>
+              <code data-noescape data-trim>
+                function printString(string) {
+                  return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                      console.log(string);
+                      resolve();
+                    },
+                    Math.floor(Math.random() * 100) + 1);
+                  });
+                }
 
-		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+                function printAll(){
+                  printString("A")
+                  .then(() => printString("B"))
+                  .then(() => printString("C"))
+                }
+                printAll()
+              </code>
+            </pre>
+            <aside class="notes">Let’s take a look at example refactored with promises. We use promise wrapper with resolve callback and then use promise chaining. The code looks cleaner and still works.</aside>
+          </section>
+          <section>
+            <h4>Static methods</h4>
+            <p class="fragment fade-in">Promise.resolve</p>
+            <pre><code data-noescape data-trim class="hljs javascript fragment fade-in">
+              let promise = Promise.resolve(value);
+            </code></pre>
+            <p class="fragment fade-in">Promise.reject</p>
+            <pre><code data-noescape data-trim class="hljs javascript fragment fade-in">
+              let promise = Promise.reject(error);
+            </code></pre>
+            <p class="fragment fade-in">Promise.all</p>
+            <pre><code data-noescape data-trim class="hljs javascript fragment fade-in">
+              let promise = Promise.all(iterable);
+            </code></pre>
+            <p class="fragment fade-in">Promise.race</p>
+            <pre><code data-noescape data-trim class="hljs javascript fragment fade-in">
+              let promise = Promise.race(iterable);
+            </code></pre>
+            <aside class="notes">Also i should mention a few static methods of promises. ‘Promise.resolve’ is used when we already have a value, but would like to have it “wrapped” into a promise. ‘Promise.reject’ is used the same way but for errors. ‘Promise.all’ runs many promises in parallel and wait till all of them are ready. It takes an array with promises and returns a new promise. The new promise resolves with when all of them are settled and has an array of their results. ‘Promise.race’ is similar to previous one, but it wait for the first result and goes with it.</aside>
+          </section>
+        </section>
+        <section>
+          <section>
+            <h3>Async/await</h3>
+            <p class="fragment fade-in">Syntactic sugar for Promises.</p>
+            <aside class="notes">Ok, let’s move on. Async/await is a special syntax to work with promises. In other words it’s a syntactic sugar for promises, which makes it easier to read.</aside>
+          </section>
+          <section>
+            <pre><code data-noescape data-trim class="hljs javascript">
+              async function printAll() {
+                await printString('A');
+                await printString('B');
+                await printString('C');
+              }
+              printAll();              
+            </code></pre>
+            <aside class="notes">Our example with async/await syntax.’PrintString’ function is the same like in promise version.</aside>
+          </section>
+          <section>
+            <h4>Async before function</h4>
+            <ol>
+              <li>Makes it always return a promise.</li>
+              <li>Allows to use await in it.</li>
+            </ol>
+            <h4>Await inside</h4>
+            <ol>
+              <li>If it’s an error, the exception is generated, same as if throw error were called at that very place.</li>
+              <li>Otherwise, it returns the result, so we can assign it to a value.</li>
+            </ol>
+            <aside class="notes">‘Async’ is for declaring that a function will handle asynchronous operations and ‘await’ is used to declare that we want to “await” the result of an asynchronous operation inside a function that has the async keyword.</aside>
+          </section>
+        </section>
+        <section>
+          <h3>Sources</h3>
+          <ol>
+            <li><a href="http://javascript.info/async" target="_blank">javascript.info</a></li>
+            <li><a href="https://medium.com/javascript-scene/master-the-javascript-interview-what-is-a-promise-27fc71e77261" target="_blank">Eric Elliott's article</a></li>
+            <li><a href="https://medium.com/front-end-hacking/callbacks-promises-and-async-await-ad4756e01d90" target="_blank">Sandeep Dinesh's article</a></li>
+            <li><a href="https://medium.com/codebuddies/getting-to-know-asynchronous-javascript-callbacks-promises-and-async-await-17e0673281ee" target="_blank">Sebastian Lindström's article</a></li>
+            <li><a href="http://jamesknelson.com/grokking-es6-promises-the-four-functions-you-need-to-avoid-callback-hell/" target="_blank">jamesknelson.com</a></li>
+            <li><a href="http://callbackhell.com/" target="_blank">callbackhell.com</a></li>
+          </ol>
+          <aside class="notes">This is the last slide where you can find sources i used for this presentation. Use it to dig in the subject of callbacks and promises. Thanks.</aside>
+        </section>
+      </div>  
+    </div>
 
-		<!-- Theme used for syntax highlighting of code -->
-		<link rel="stylesheet" href="lib/css/zenburn.css">
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
 
-		<!-- Printing and PDF exports -->
-		<script>
-			var link = document.createElement( 'link' );
-			link.rel = 'stylesheet';
-			link.type = 'text/css';
-			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
-			document.getElementsByTagName( 'head' )[0].appendChild( link );
-		</script>
-	</head>
-	<body>
-		<div class="reveal">
-			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
-			</div>
-		</div>
-
-		<script src="lib/js/head.min.js"></script>
-		<script src="js/reveal.js"></script>
-
-		<script>
-			// More info about config & dependencies:
-			// - https://github.com/hakimel/reveal.js#configuration
-			// - https://github.com/hakimel/reveal.js#dependencies
-			Reveal.initialize({
-				dependencies: [
-					{ src: 'plugin/markdown/marked.js' },
-					{ src: 'plugin/markdown/markdown.js' },
-					{ src: 'plugin/notes/notes.js', async: true },
-					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
-				]
-			});
-		</script>
-	</body>
+    <script>
+      // More info about config & dependencies:
+      // - https://github.com/hakimel/reveal.js#configuration
+      // - https://github.com/hakimel/reveal.js#dependencies
+      Reveal.initialize({
+        dependencies: [
+          { src: 'plugin/markdown/marked.js' },
+          { src: 'plugin/markdown/markdown.js' },
+          { src: 'plugin/notes/notes.js', async: true },
+          { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+        ]
+      });
+    </script>
+  </body>
 </html>
